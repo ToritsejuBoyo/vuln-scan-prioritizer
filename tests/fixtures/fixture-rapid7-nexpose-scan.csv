@@ -1,0 +1,5 @@
+Vulnerability ID,CVEs,CVSS Score,Severity,Asset IP Address,Asset Hostname,Service Port,Service Protocol,Vulnerability Title,Fix
+cve-2020-1472,CVE-2020-1472,10.0,Critical,203.0.113.10,synthetic-ad-dc-01.corp.example.com,445,tcp,Netlogon Elevation of Privilege Vulnerability (Zerologon),Install security update KB4557222 and verify Domain Controller secure RPC settings.
+cve-2023-44487,CVE-2023-44487,7.5,High,203.0.113.25,synthetic-web-portal-01.corp.example.com,443,tcp,HTTP/2 Rapid Reset Denial of Service,Patch nginx package to version 1.25.3 or apply rate limiting.
+cve-2021-44228,CVE-2021-44228,10.0,Critical,203.0.113.25,synthetic-web-portal-01.corp.example.com,8080,tcp,Apache Log4j RCE via JNDI Injection,Upgrade log4j dependency to 2.17.1 or later.
+info-tls-10,,0.0,Informational,203.0.113.25,synthetic-web-portal-01.corp.example.com,443,tcp,TLS 1.0 / 1.1 Deprecation Notice,Disable TLS 1.0 and 1.1 in web server configuration.

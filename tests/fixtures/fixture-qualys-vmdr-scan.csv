@@ -1,0 +1,6 @@
+QID,CVE ID,CVSS3 Base,Severity,IP,DNS,Port,Protocol,Title,Solution,Results
+378912,CVE-2024-21413,9.8,5,198.51.100.12,synthetic-exchange-01.corp.example.com,443,TCP,Microsoft Outlook Remote Code Execution Vulnerability (MonikerLink),Apply official vendor patch KB5034763 released in February 2024 security update.,Vulnerable Exchange/Outlook integration detected on port 443.
+378913,CVE-2023-44487,7.5,4,198.51.100.12,synthetic-exchange-01.corp.example.com,443,TCP,HTTP/2 Rapid Reset Stream Cancellation Exhaustion,Update frontend IIS / HTTP.sys or reverse proxy modules.,HTTP/2 negotiated with RST_STREAM vulnerability present.
+378914,CVE-2023-38606,9.8,5,198.51.100.45,synthetic-db-stage-01.corp.example.com,5432,TCP,PostgreSQL Backend Memory Corruption Vulnerability,Upgrade database cluster binaries to latest maintenance release.,PostgreSQL 15.2 detected.
+378915,CVE-2021-44228,10.0,5,198.51.100.60,synthetic-ops-monitor-01.corp.example.com,8443,TCP,Apache Log4j JNDI Remote Code Execution Flaw,Deploy Log4j 2.17.1 update across Java classpath.,Vulnerable log4j-core-2.14.0.jar detected.
+10050,,,1,198.51.100.12,synthetic-exchange-01.corp.example.com,80,TCP,HTTP Server Banner Detection,No remediation required for informational telemetry.,Microsoft-IIS/10.0 detected.
