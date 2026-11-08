@@ -21,6 +21,12 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Dict, List, Optional, Set, Tuple
 
+# Increase CSV field size limit to support massive vulnerability scanner outputs (e.g., 50MB+ plugin outputs)
+try:
+    csv.field_size_limit(sys.maxsize)
+except OverflowError:
+    csv.field_size_limit(2147483647)
+
 # Built-in High-Impact CISA Known Exploited Vulnerabilities (KEV) Catalog Subset
 DEFAULT_KEV_CVES: Set[str] = {
     "CVE-2021-44228",  # Log4Shell
@@ -122,9 +128,11 @@ class TelemetrySanitizer:
         return self._host_cache[host_clean]
 
     def sanitize_text(self, text: str) -> str:
-        """Sanitizes text strings (titles, solutions) by stripping internal domains/IPs."""
+        """Sanitizes text strings (titles, solutions) by stripping internal domains/IPs and bidi overrides."""
         if not text:
             return ""
+        # Strip dangerous bidirectional unicode characters and zero-width spaces
+        text = re.sub(r"[\u200b-\u200f\u202a-\u202e\u2066-\u2069\ufeff]", "", text)
         # Replace IPv4 addresses
         text = re.sub(
             r"\b(10\.\d{1,3}\.\d{1,3}\.\d{1,3}|172\.(1[6-9]|2\d|3[01])\.\d{1,3}\.\d{1,3}|192\.168\.\d{1,3}\.\d{1,3})\b",
@@ -232,8 +240,14 @@ class ScannerParser:
             port_raw = get_field(["port"], "0")
             if "/" in port_raw:
                 parts = port_raw.split("/")
-                port = parts[0]
-                protocol = parts[1] if len(parts) > 1 else "tcp"
+                if parts[0].isdigit():
+                    port = parts[0]
+                    protocol = parts[1] if len(parts) > 1 else "tcp"
+                elif len(parts) > 1 and parts[1].isdigit():
+                    port = parts[1]
+                    protocol = parts[0]
+                else:
+                    port = parts[0]
             else:
                 port = port_raw
             title = get_field(["nvt name", "name", "title"])
@@ -326,12 +340,13 @@ class ScannerParser:
     def _parse_cvss(self, cvss_str: str, raw_sev: str) -> float:
         if cvss_str:
             try:
-                # Clean up numbers like "7.5 (v3)" or "9.8"
-                match = re.search(r"(\d+(\.\d+)?)", cvss_str)
+                # Support European comma decimal separator (e.g., "9,8" -> "9.8")
+                clean_str = cvss_str.strip().replace(",", ".")
+                match = re.search(r"(-?\d+(\.\d+)?)", clean_str)
                 if match:
                     score = float(match.group(1))
-                    if 0.0 <= score <= 10.0:
-                        return score
+                    # Clamp valid CVSS to range [0.0, 10.0]
+                    return max(0.0, min(10.0, score))
             except (ValueError, TypeError):
                 pass
 
@@ -474,7 +489,11 @@ class PrioritizationEngine:
                         seen_cves.add(c)
                         all_cves.append(c)
 
-            ports = sorted(list(set(f.port for f in flist if f.port and f.port != "0")))
+            def port_sort_key(p: str) -> Tuple[int, str]:
+                m = re.search(r"\d+", p)
+                return (int(m.group(0)) if m else 999999, p)
+
+            ports = sorted(list(set(f.port for f in flist if f.port and f.port != "0")), key=port_sort_key)
             max_cvss = max(f.cvss_base for f in flist)
             max_comp = max(f.composite_score for f in flist)
             has_kev = any(f.is_kev for f in flist)
@@ -863,3 +882,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
