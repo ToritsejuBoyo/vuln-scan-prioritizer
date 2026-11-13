@@ -2,6 +2,13 @@
 
 ![vuln-scan-prioritizer Demo](assets/demo.gif)
 
+[![tests](https://github.com/ToritsejuBoyo/vuln-scan-prioritizer/actions/workflows/tests.yml/badge.svg)](https://github.com/ToritsejuBoyo/vuln-scan-prioritizer/actions/workflows/tests.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![Python](https://img.shields.io/badge/python-3.9%2B-blue.svg)]()
+[![Dependencies](https://img.shields.io/badge/dependencies-zero%20(stdlib%20only)-brightgreen.svg)](CONTRIBUTING.md)
+[![Security](https://img.shields.io/badge/security-read--only%20%7C%20no%20egress-informational.svg)](SECURITY.md)
+[![Standard](https://img.shields.io/badge/standard-agentskills.io-blueviolet.svg)](https://agentskills.io)
+
 > An HD recording is available in [`assets/demo.mp4`](assets/demo.mp4).
 
 Deterministic, offline vulnerability scan prioritizer and deduplication engine for **Tenable Nessus, Greenbone OpenVAS / GVM, Qualys VMDR, and Rapid7 Nexpose**. Ingests raw CSV exports, collapses repetitive multi-port findings into unified patch bundles, contextualizes risk via active threat intelligence (CISA KEV) and network exposure, and partitions issues into an actionable 4-wave remediation schedule with copy-paste ITSM patch tickets.

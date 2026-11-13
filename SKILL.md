@@ -1,6 +1,17 @@
 ---
 name: vuln-scan-prioritizer
-description: Triage, deduplicate, and prioritize vulnerability scanner CSV exports (Nessus, OpenVAS, Qualys, Rapid7) into actionable 4-wave remediation schedules and ITSM patch tickets.
+description: >-
+  Triage, deduplicate, and prioritize vulnerability scanner CSV exports (Nessus, OpenVAS, Qualys,
+  Rapid7) into actionable 4-wave remediation schedules and ITSM patch tickets. Use when a scan
+  export is too large to action, deduplicating findings across scanners, deciding which CVEs to
+  patch first, applying CISA KEV and asset context to raw CVSS scores, or generating patch tickets
+  from scan results.
+license: MIT
+version: 1.0.0
+metadata:
+  standard: agentskills.io
+  dependencies: none (Python standard library only)
+  access: read-only collectors; no state is modified on target systems
 ---
 
 # Vulnerability Scan Prioritizer (`vuln-scan-prioritizer`)
@@ -84,3 +95,41 @@ When an AI agent is tasked with reviewing infrastructure security scans:
 1. Run `vuln_prioritizer.py -i <scan.csv> --sanitize --json` to inspect prioritized findings programmatically.
 2. Review Wave 1 (Emergency) bundles to identify immediate perimeter risks.
 3. Present the executive summary table and ticket copy to human security engineers for change management sign-off.
+
+---
+
+## Bundled Resources
+
+Load these on demand — they hold the scoring model and parser contracts.
+
+- **Contextual Risk Scoring Rubric:** [`references/contextual-risk-scoring-rubric.md`](references/contextual-risk-scoring-rubric.md) — The mathematical scoring model and SLA tiering heuristics that convert static scanner severity into remediation waves. **Consult before explaining or overriding any priority score.**
+- **Scanner Column Mapping Matrix:** [`references/scanner-column-mapping-matrix.md`](references/scanner-column-mapping-matrix.md) — How heterogeneous Nessus/OpenVAS/Qualys/Rapid7 CSV headers normalize into the unified finding schema. **Consult when a scan export fails to parse or a column is unrecognized.**
+- **CISA KEV Reference:** [`references/cisa-kev-catalog-reference.md`](references/cisa-kev-catalog-reference.md) — Role of the CISA Known Exploited Vulnerabilities catalog in prioritization and scan-noise elimination.
+- **Remediation Report Template:** [`assets/vulnerability-remediation-report-template.md`](assets/vulnerability-remediation-report-template.md) — Structured vulnerability remediation assessment report.
+- **ITSM Patch Ticket Template:** [`assets/itsm-patch-ticket-template.md`](assets/itsm-patch-ticket-template.md) — Patch ticket structure for Jira Service Management, ServiceNow, BMC Remedy, or Azure DevOps.
+
+---
+
+## Data Handling & Sanitization
+
+Sanitization runs **client-side, before any output is produced**, so credentials and
+personal data are removed on the operator's machine rather than being sent to a model
+or pasted into a ticket.
+
+Two layers apply:
+
+1. This skill's own domain-aware masking (hostnames, accounts, and the identifiers
+   specific to this domain).
+2. A shared residual pass, [`scripts/sanitizer.py`](scripts/sanitizer.py), vendored
+   identically across every skill in the library. It is the common floor: private keys,
+   cloud provider keys, JWTs and bearer tokens, connection-string passwords, assigned
+   secrets, emails, IPv4/IPv6 addresses, MAC addresses, GUIDs, SSNs, payment card
+   numbers, and phone numbers.
+
+The contract is enforced by `tests/sanitizer_conformance_test.py`, which runs the same
+adversarial corpus in every skill. Documentation placeholders (RFC 5737/3849 addresses,
+RFC 7042 MAC ranges, `example.com` names, and existing `[REDACTED-*]` tokens) are
+preserved, so the pass is safe to apply more than once.
+
+Sanitization is thorough and tested, but it is not a substitute for reading output
+before sharing it outside your organization.

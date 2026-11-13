@@ -21,6 +21,21 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Dict, List, Optional, Set, Tuple
 
+# ---------------------------------------------------------------------------
+# Shared residual sanitization pass (vendored: scripts/sanitizer.py).
+# Runs last, after this skill's domain-specific masking, so that every skill in
+# the library enforces an identical credential/PII floor. See
+# tests/sanitizer_conformance_test.py for the contract this must satisfy.
+# ---------------------------------------------------------------------------
+try:
+    from sanitizer import residual_scrub as _residual_scrub
+except ImportError:  # pragma: no cover - direct execution from another cwd
+    import os as _os
+    import sys as _sys
+    _sys.path.insert(0, _os.path.dirname(_os.path.abspath(__file__)))
+    from sanitizer import residual_scrub as _residual_scrub
+
+
 # Increase CSV field size limit to support massive vulnerability scanner outputs (e.g., 50MB+ plugin outputs)
 try:
     csv.field_size_limit(sys.maxsize)
@@ -139,6 +154,7 @@ class TelemetrySanitizer:
             "192.0.2.10",
             text
         )
+        text = _residual_scrub(text)
         return text
 
 
