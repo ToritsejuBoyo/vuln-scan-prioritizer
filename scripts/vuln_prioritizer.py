@@ -12,6 +12,7 @@ and Rule 7 (Zero-Emoji Enterprise Tone).
 
 import argparse
 import csv
+import io
 import hashlib
 import json
 import os
@@ -189,28 +190,38 @@ class ScannerParser:
         if not filepath.exists():
             raise FileNotFoundError(f"Scanner CSV file not found: {filepath}")
 
-        with open(filepath, "r", encoding="utf-8-sig", errors="replace") as f:
-            reader = csv.reader(f)
-            headers = []
-            for row in reader:
-                if row and any(cell.strip() for cell in row):
-                    headers = row
-                    break
-            
-            if not headers:
-                raise ValueError("CSV file contains no readable headers.")
+        # Read once and strip NUL bytes before handing anything to the csv module.
+        #
+        # csv.reader raises "_csv.Error: line contains NUL" on Python 3.10 and earlier,
+        # while 3.11+ tolerates embedded NULs. Relying on that difference meant the
+        # parser only survived NUL-bearing exports by accident on newer interpreters.
+        # Scanner exports pick up NULs routinely - UTF-16 output mislabelled as UTF-8,
+        # truncated writes, agents serialising fixed-width buffers - so they are
+        # stripped explicitly here and the behaviour is identical on every version.
+        raw_text = filepath.read_text(encoding="utf-8-sig", errors="replace")
+        if "\x00" in raw_text:
+            raw_text = raw_text.replace("\x00", "")
+
+        reader = csv.reader(io.StringIO(raw_text))
+        headers = []
+        for row in reader:
+            if row and any(cell.strip() for cell in row):
+                headers = row
+                break
+
+        if not headers:
+            raise ValueError("CSV file contains no readable headers.")
 
         format_detected = ScannerDetector.detect_format(headers)
         findings: List[Finding] = []
 
-        with open(filepath, "r", encoding="utf-8-sig", errors="replace") as f:
-            dict_reader = csv.DictReader(f)
-            for row in dict_reader:
-                if not any(v.strip() for v in row.values() if v):
-                    continue
-                finding = self._parse_row(format_detected, row)
-                if finding:
-                    findings.append(finding)
+        dict_reader = csv.DictReader(io.StringIO(raw_text))
+        for row in dict_reader:
+            if not any(v.strip() for v in row.values() if v):
+                continue
+            finding = self._parse_row(format_detected, row)
+            if finding:
+                findings.append(finding)
 
         return format_detected, findings
 
