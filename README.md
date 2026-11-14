@@ -4,7 +4,7 @@
 
 [![tests](https://github.com/ToritsejuBoyo/vuln-scan-prioritizer/actions/workflows/tests.yml/badge.svg)](https://github.com/ToritsejuBoyo/vuln-scan-prioritizer/actions/workflows/tests.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![Python](https://img.shields.io/badge/python-3.9%2B-blue.svg)]()
+[![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)]()
 [![Dependencies](https://img.shields.io/badge/dependencies-zero%20(stdlib%20only)-brightgreen.svg)](CONTRIBUTING.md)
 [![Security](https://img.shields.io/badge/security-read--only%20%7C%20no%20egress-informational.svg)](SECURITY.md)
 [![Standard](https://img.shields.io/badge/standard-agentskills.io-blueviolet.svg)](https://agentskills.io)
